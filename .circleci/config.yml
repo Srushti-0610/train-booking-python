@@ -1,41 +1,41 @@
-version: 2.1
+﻿version: 2.1
 
 jobs:
-test:
-docker:
-- image: cimg/python:3.12
-steps:
-- checkout
-- run:
-name: Install dependencies
-command: pip install -r requirements.txt
-- run:
-name: Run pytest
-command: PYTHONPATH=. python -m pytest -q
+  test:
+    docker:
+      - image: cimg/python:3.12
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run pytest
+          command: PYTHONPATH=. python -m pytest -q
 
-build-and-push:
-docker:
-- image: cimg/base:stable
-steps:
-- checkout
-- setup_remote_docker
-- run:
-name: Login to Docker Hub
-command: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-- run:
-name: Build Docker image
-command: docker build -t srushti0610/train-booking-python:1.0 .
-- run:
-name: Push Docker image
-command: docker push srushti0610/train-booking-python:1.0
+  build-and-push:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Login to Docker Hub
+          command: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - run:
+          name: Build Docker image
+          command: docker build -t srushti0610/train-booking-python:1.0 .
+      - run:
+          name: Push Docker image
+          command: docker push srushti0610/train-booking-python:1.0
 
 workflows:
-test-and-deploy:
-jobs:
-- test
-- build-and-push:
-requires:
-- test
-filters:
-branches:
-only: main
+  test-and-deploy:
+    jobs:
+      - test
+      - build-and-push:
+          requires:
+            - test
+          filters:
+            branches:
+              only: main
