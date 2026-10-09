@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: pip install -r requirements.txt
+          command: python -m pip install -r requirements.txt
       - run:
           name: Run pytest
           command: PYTHONPATH=. python -m pytest -q
