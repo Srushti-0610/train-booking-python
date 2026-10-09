@@ -8,10 +8,13 @@ jobs:
       - checkout
       - run:
           name: Install dependencies
-          command: "python -m pip install -r requirements.txt"
+          command: |
+            python -m pip install -r requirements.txt
+            python -m pip install pytest pytest-cov
       - run:
           name: Run pytest
-          command: "PYTHONPATH=. python -m pytest -q"
+          command: |
+            PYTHONPATH=. python -m pytest -q
 
   build-and-push:
     docker:
