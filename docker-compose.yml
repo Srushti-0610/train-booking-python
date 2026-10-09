@@ -1,0 +1,61 @@
+﻿services:
+  postgres:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: trainbooking
+      POSTGRES_USER: trainuser
+      POSTGRES_PASSWORD: trainpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trainuser -d trainbooking"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4.1
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrate:
+    image: postgres:16.4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: trainuser
+      PGDATABASE: trainbooking
+      PGPASSWORD: trainpass
+    volumes:
+      - ./migrations:/migrations:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command: "psql -v ON_ERROR_STOP=1 -f /migrations/001_schema.sql && psql -v ON_ERROR_STOP=1 -f /migrations/002_seed.sql"
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://trainuser:trainpass@postgres:5432/trainbooking
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
